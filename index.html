@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SHI MOVIES | Mobile Premium</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @font-face { font-family: 'NRT'; src: url('https://raw.githubusercontent.com/SoranHama/Fonts/master/NRT-Reg.ttf'); }
+        :root { 
+            --bg: #010409; 
+            --card: #0d1117; 
+            --accent: #38bdf8; 
+            --save: #f43f5e; 
+            --text: #e6edf3;
+            --sidebar-bg: #161b22;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+        
+        * { 
+            margin: 0; padding: 0; box-sizing: border-box; 
+            font-family: 'NRT', sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+            /* ڕێگری ل دیاربوونا نڤیسینێ (No Select) */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* لێرە ڕێ ددەین تەنێ نڤیسین د سێرچێ دا بهێتە نڤیسین */
+        input { user-select: text !important; -webkit-user-select: text !important; }
+
+        body { 
+            background-color: var(--bg); 
+            color: var(--text); 
+            line-height: 1.6; 
+            overflow-x: hidden;
+            touch-action: pan-y; /* ڕێگری ل زوومێ د مۆبایلێ دا */
+        }
+
+        /* Header Style */
+        header {
+            padding: 12px 5%; background: rgba(1, 4, 9, 0.8);
+            backdrop-filter: blur(15px); border-bottom: 1px solid #30363d;
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
+        .logo { font-size: 20px; font-weight: 900; color: white; letter-spacing: 0.5px; }
+        .logo span { color: var(--accent); }
+        
+        .save-trigger { position: relative; padding: 8px; cursor: pointer; }
+        .save-count { 
+            background: var(--save); color: white; font-size: 10px; font-weight: bold;
+            padding: 2px 6px; border-radius: 20px; position: absolute; top: 0; right: 0;
+            box-shadow: 0 0 10px rgba(244, 63, 94, 0.3);
+        }
+
+        .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
+        
+        /* Search Bar */
+        .search-bar { 
+            width: 100%; padding: 15px 20px; border-radius: 30px; 
+            border: 1px solid #30363d; background: var(--card); color: white; 
+            margin-bottom: 20px; outline: none; transition: 0.3s;
+            font-size: 16px; /* 16px رێگریێ ل زوومێ دکەت ل ئایفۆنێ */
+        }
+
+        /* Filter Modern Scrollable */
+        .filter-container {
+            display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px;
+            scrollbar-width: none;
+        }
+        .filter-container::-webkit-scrollbar { display: none; }
+        
+        .filter-btn {
+            background: var(--glass); color: #8b949e; padding: 8px 18px; border-radius: 12px;
+            cursor: pointer; white-space: nowrap; border: 1px solid #30363d; transition: 0.3s;
+            font-size: 13px; font-weight: bold;
+        }
+        .filter-btn.active { background: var(--accent); color: #010409; border-color: var(--accent); }
+
+        /* Movie Card Premium Style */
+        .post-card {
+            background: var(--card); border-radius: 20px; overflow: hidden;
+            margin-bottom: 25px; border: 1px solid #30363d;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .post-card img { 
+            width: 100%; height: 230px; object-fit: cover; 
+            pointer-events: none; /* وێنە ناهێنە سەیڤ کرن یان گرتن */
+        }
+        .post-info { padding: 18px; }
+        .creator-tag { 
+            color: var(--accent); font-size: 11px; font-weight: bold; 
+            margin-bottom: 8px; display: inline-block; background: rgba(56, 189, 248, 0.1);
+            padding: 2px 10px; border-radius: 5px;
+        }
+        .post-title { font-size: 18px; margin-bottom: 6px; font-weight: 800; color: #f0f6fc; }
+        .post-desc { color: #8b949e; font-size: 13px; margin-bottom: 18px; line-height: 1.4; }
+
+        .actions { display: flex; justify-content: space-between; align-items: center; }
+        .btn-watch { 
+            background: var(--accent); color: #010409; padding: 10px 30px; 
+            border-radius: 12px; text-decoration: none; font-weight: 900; font-size: 13px;
+        }
+        .btn-save { font-size: 24px; cursor: pointer; color: #484f58; transition: 0.2s; }
+        .btn-save.saved { color: var(--save); }
+
+        /* Sidebar Glass Effect */
+        #savedSidebar { 
+            position: fixed; top: 0; right: -100%; width: 85%; height: 100%;
+            background: var(--sidebar-bg); z-index: 2000; transition: 0.4s;
+            padding: 25px; box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+        }
+        #savedSidebar.active { right: 0; }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1999; display: none; }
+
+        .saved-item { 
+            background: var(--card); border-radius: 15px; padding: 10px; margin-bottom: 12px; 
+            display: flex; align-items: center; gap: 12px; border: 1px solid #30363d;
+        }
+        .saved-item img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="toggleSaved()"></div>
+
+<header>
+    <div class="header-content">
+        <div class="logo">SHI<span>MOVIES</span></div>
+        <div class="save-trigger" onclick="toggleSaved()">
+            <i class="fas fa-heart"></i>
+            <span class="save-count" id="saveCount">0</span>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <input type="text" id="searchInput" class="search-bar" placeholder="لیگەریان..." autocomplete="off" spellcheck="false">
+    
+    
+    <div class="filter-container">
+        <div class="filter-btn active" onclick="filterBy('All', this)">هەمی</div>
+        <div class="filter-btn" onclick="filterBy('kawa faiq', this)">کاوە فایق</div>
+        <div class="filter-btn" onclick="filterBy('renas one', this)">ڕێناس ئۆن</div>
+        <div class="filter-btn" onclick="filterBy('Ahmad Garsi', this)">احمد گارسی</div>
+        <div class="filter-btn" onclick="filterBy('vager hassan', this)">ڤەگێر ‌‌‌‌‌‌‌حەسەن</div>
+    </div>
+
+    <div id="movieList"></div>
+</div>
+
+<div id="savedSidebar">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; border-bottom: 1px solid #30363d; padding-bottom: 15px;">
+        <h3>ئەو پوستێ دلخاز</h3>
+        <i class="fas fa-times" onclick="toggleSaved()" style="cursor:pointer; font-size: 20px;"></i>
+    </div>
+    <div id="savedList"></div>
+</div>
+
+<script>
+    const MOVIES = [
+        { id: 1, creator: "renas one", title: "فلمێ Ballerina", desc: "Ballerina - نیترین فلم ژ جیهانا جون ویکی", img: "https://i.ytimg.com/vi/NEKIWbaTJ58/maxresdefault.jpg", yt: "https://youtu.be/NEKIWbaTJ58" },
+        { id: 2, creator: "renas one", title: "Harry Potter 1 & 2", desc: "فلمێ هاری پوتەر ب دەنگێ کوردی.", img: "https://i.ytimg.com/vi/QB0OdbdKFhA/mqdefault.jpg", yt: "https://youtu.be/QB0OdbdKFhA" },
+        { id: 3, creator: "renas one", title: "Harry Potter 3 & 4", desc: "فلمێ هاری پوتەر بەشێن سێ و چار.", img: "https://i.ytimg.com/vi/rC4IA4dpWYs/maxresdefault.jpg", yt: "https://youtu.be/rC4IA4dpWYs" },
+        { id: 4, creator: "renas one", title: "Harry Potter 5 & 6", desc: "فلمێ هاری پوتەر بەشێن پێنج و شەش.", img: "https://i.ytimg.com/vi/PLUs_nDhh3Y/maxresdefault.jpg", yt: "https://youtu.be/PLUs_nDhh3Y" },
+        { id: 5, creator: "renas one", title: "Harry Potter 7 & 8", desc: "کۆتاییا زنجیرە فلمێن هاری پوتەر.", img: "https://i.ytimg.com/vi/rmgAspFvIOo/hq720.jpg", yt: "https://youtu.be/rmgAspFvIOo" },
+        { id: 6, creator: "renas one", title: "A Quiet Place 1 & 2", desc: "بونەوەرێن ب ترس عەرد یێ داگیرکری.", img: "https://i.ytimg.com/vi/-hI_RZNW7xY/maxresdefault.jpg", yt: "https://youtu.be/-hI_RZNW7xY" },
+        { id: 7, creator: "renas one", title: "Gold - فلمێ زێڕ", desc: "پارچەکا مەزن یا زێری ل بیابانێ دبینن.", img: "https://i.ytimg.com/vi/H68Xb-g8k9I/maxresdefault.jpg", yt: "https://youtu.be/H68Xb-g8k9I" },
+        { id: 8, creator: "renas one", title: "The Martian", desc: "کەسەك دمینیتە لسەر هەسارا مەریخێ بتنێ.", img: "https://i.ytimg.com/vi/zh8gNvKUoPE/maxresdefault.jpg", yt: "https://youtu.be/zh8gNvKUoPE" },
+        { id: 9, creator: "renas one", title: "Prisoner Of War 2025", desc: "سەربازەکێ بریتانی دهێتە زیندان کرن.", img: "https://i.ytimg.com/vi/AjeJwS5kgm8/maxresdefault.jpg", yt: "https://youtu.be/AjeJwS5kgm8" },
+        { id: 10, creator: "renas one", title: "The Long Walk 2025", desc: "خوشترین فلمێ ئەڤ سالە؛ برێڤە بچی یان دێ مری.", img: "https://i.ytimg.com/vi/8rRTvxp97Bo/maxresdefault.jpg", yt: "https://youtu.be/8rRTvxp97Bo" },
+        { id: 11, creator: "renas one", title: "Jackie Chan Movie", desc: "خوشترین فلمێ جاکیشانی شینفو فەنا ماری.", img: "https://i.ytimg.com/vi/WHHz7hnTKQM/maxresdefault.jpg", yt: "https://youtu.be/WHHz7hnTKQM" },
+        { id: 12, creator: "renas one", title: "Lilo & Stitch", desc: "بونەوەرەکێ ئاسمانی دهێتە سەر ئەردی.", img: "https://i.ytimg.com/vi/ZbCJQTFzPw8/maxresdefault.jpg", yt: "https://youtu.be/ZbCJQTFzPw8" },
+        { id: 13, creator: "kawa faiq", title: "Scream", desc: "کوژەکێ زنجیرەی 💀 چیروکا فلمێ ", img: "https://i.ytimg.com/vi/ImzEizC9ia4/maxresdefault.jpg", yt: "https://youtu.be/ImzEizC9ia4?si=IEDu7Si4SJty9JeH" },
+        { id: 14, creator: "kawa faiq", title: "Scream 2", desc: "کوژەکێ زنجیرەی 💀 چیروکا فلمێ", img: "https://i.ytimg.com/vi/T8DYKiLeNsY/maxresdefault.jpg", yt: "https://youtu.be/T8DYKiLeNsY?si=Tm1W5kPR7F3xVHV_" },
+        { id: 15, creator: "kawa faiq", title: "Scream 3", desc: "کوژەکێ زنجیرەی 💀 چیروکا فلمێ   😨 پارتا سیێ", img: "https://i.ytimg.com/vi/gJzJKAPBhJM/sddefault.jpg", yt: "https://youtu.be/gJzJKAPBhJM?si=E7pV9lRWn-DyEkiy" },
+        { id: 16, creator: "vager hassan", title: "فلمێ بیرهاتنێت تاوانێ", desc: "کەس نزانیت کوژەک کیە !!😳 | چیروکا راستی یا فلمێ بیرهاتنێت تاوانێ", img: "https://i.ytimg.com/vi/Sx5y32oTF3s/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDmAGOomBU1xzWWVPoonBT9YpO60w", yt: "https://youtu.be/Sx5y32oTF3s?si=hNKEC_aCyzPfPpaf" },
+        { id: 17, creator: "vager hassan", title: "کریستوفەر", desc: "ئەڤ کەسە مالا خو دهێلیت و دچیتە دەشتێ بتنێ دژیت 😨 | چیروکا راستی یا کریستوفەری", img: "https://i.ytimg.com/vi/dsRPXnOzjLY/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLCY8mMgfsvIkJmIR5n0GcCO8nnuDw", yt: "https://youtu.be/dsRPXnOzjLY?si=D2Hg5KAGGli9b2oj" },
+        { id: 18, creator: "vager hassan", title: " Paper Lives", desc: "زاروکەکی dناڤ گلێشی دا دبینیت و بخودان دکەت😨 | چیروکا فلمێ", img: "https://i.ytimg.com/vi/KvEC1RbZtwY/maxresdefault.jpg", yt: "https://youtu.be/KvEC1RbZtwY?si=6FBojs0XYpqwgVlf" },
+        { id: 19, creator: "vager hassan", title: "فلمێ چاربرا", desc: "دەیکا وان dکوژن ئەو ژی پێکولا دکەن تولێت وێ ڤەکەن 🔥", img: "https://i.ytimg.com/vi/jq30o6xb2zw/maxresdefault.jpg", yt: "https://youtu.be/jq30o6xb2zw?si=MlB6Tb3XbGXkHULF" },
+        { id: 20, creator: "vager hassan", title: "فلمێ رەینگولد", desc: "خەتەر و مەزنترین دزیا زێرا 😨 | چیروکا راستی ", img: "https://i.ytimg.com/vi/Io3gKP70mvo/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDfXq0hsB3sMY9qP2hiYpX-9tRhQg", yt: "https://youtu.be/Io3gKP70mvo?si=LM3zLpydQ3fT4iAg" },
+        { id: 21, creator: "vager hassan", title: "گزیرتا زاروکا ", desc: "چیروکا چەتێت دەریای دگەل پیتەری", img: "https://i.ytimg.com/vi/wvJc9d_JHBQ/maxresdefault.jpg", yt: "https://youtu.be/wvJc9d_JHBQ?si=tyZeJDBsi4TygeRi" },
+        { id: 22, creator: "vager hassan", title: "1-عنتەرێ", desc: "چیروکا بەندەیێ هوزانڤان و شەرکەر | عنتەرێ کورێ شەدادی (خەلەکا ئێکێ) 🔥", img: "https://i.ytimg.com/vi/MkGUgheIKNA/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDIo1RSymOXJSeEJ6-1B1MgMaBydQ", yt: "https://youtu.be/MkGUgheIKNA?si=H3Z3uFlLWnPSmOvk" },
+        { id: 23, creator: "vager hassan", title: "2-عنتەرێ", desc: "ژدایکبونا عنتەری و شەهیانا زهێری | خەلەکا دووێ 😍", img: "https://i.ytimg.com/vi/5Nnciaf1Zuc/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLBNqZRdHkZ7NWIiNDqVJascawA-bw", yt: "https://youtu.be/5Nnciaf1Zuc?si=LjkvbFBW9R9sEIPJ" },
+        { id: 24, creator: "vager hassan", title: "3-عنتەرێ", desc: "عنتەر ب بوکسەکێ مروڤەکی دکوژیت 😳 | خەلەکا سیێ", img: "https://i.ytimg.com/vi/V2_RZkFp9cc/maxresdefault.jpg", yt: "https://youtu.be/V2_RZkFp9cc?si=ysar6_0yLeNxfKlL" },
+        { id: 25, creator: "vager hassan", title: "4-عنتەرێ", desc: "عنتەری چاوا حەفتیار کوشت !!😱 | خەلەکا چارێ", img: "https://i.ytimg.com/vi/2kpAHfg3ZT8/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDG5l7EuFOAJmXggH5r8fyYn27pyg", yt: "https://youtu.be/2kpAHfg3ZT8?si=BXAzgOBzJTdHlfle" },
+        { id: 26, creator: "vager hassan", title: "5-عنتەرێ", desc: "شەداد عنتەری د قوتیت 🤕 | خەلەکا پێنجێ", img: "https://i.ytimg.com/vi/hXhsEpGexvE/maxresdefault.jpg", yt: "https://youtu.be/hXhsEpGexvE?si=GxFjfYO6e5EuxclL" },
+        { id: 27, creator: "vager hassan", title: "6-عنتەرێ", desc: "شەرەکێ مەزن چێدبیت و عەبلا دهێتە گرتن 😬 | خەلەکا شەشێ", img: "https://i.ytimg.com/vi/XNwpIDD0IoU/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDRzaHYJIy4XIMX0xwKPmszT-bGpA", yt: "https://youtu.be/XNwpIDD0IoU?si=6hqOhZnXAIhKxla3" },
+        { id: 28, creator: "vager hassan", title: "7-عنتەرێ", desc: "عەنتەرە دهێتە ئازادکرن بەلێ چاوا؟😳 | خەلەکا دوماهیکێ", img: "https://i.ytimg.com/vi/fkOrd461bK0/maxresdefault.jpg", yt: "https://youtu.be/fkOrd461bK0?si=51F4dHqjqgYB557n" },
+        { id: 29, creator: "vager hassan", title: "Badla", desc: "کەیسەکا ئالوز و کوژەکێ بەرزە !!😨| چیروکا فلمێ هندی", img: "https://i.ytimg.com/vi/1trnwlL9IP8/maxresdefault.jpg", yt: "https://youtu.be/1trnwlL9IP8?si=lMrfLe7dH9rxCWn0" },
+        { id: 30, creator: "Ahmad Garsi", title: "kung fu hustle", desc: "كورتيا فلمي kung fu hustle", img: "https://i.ytimg.com/vi/3I81Xq02xTo/maxresdefault.jpg", yt: "https://youtu.be/3I81Xq02xTo?si=XZ5CkWPcgcR7iGyu" },
+        { id: 31, creator: "Ahmad Garsi", title: "rise of the legend ", desc: "كورتيا فلمي rise of the legend خوشترين فلمي اكشن", img: "https://i.ibb.co/cSmwwkz0/hq720.jpg", yt: "https://youtu.be/Mr3yQXl-POk?si=9gmbgRe4gogEolLa" },
+        { id: 32, creator: "Ahmad Garsi", title: "ip man 1", desc: "كورتيا فلمي ip man 1 خوشترين فلم", img: "https://i.ytimg.com/vi/KSjZTdoPBZM/sddefault.jpg", yt: "https://youtu.be/KSjZTdoPBZM?si=eqP0AERgZkkCYvQs" },
+        { id: 33, creator: "Ahmad Garsi", title: "ip man 2", desc: "كورتيا فلمي ip man 2 خوشترين فلم", img: "https://i.ytimg.com/vi/7Y943omW-Go/maxresdefault.jpg", yt: "https://youtu.be/7Y943omW-Go?si=DyvyOIe4zf1Nn_Sm" },
+        { id: 34, creator: "Ahmad Garsi", title: "ip man 3", desc: "كورتيا فلمي ip man 3 خوشترين فلم", img: "https://i.ytimg.com/vi/zUq6fYOI_Uc/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDIzThfy7dQHcbGS69j--Sk1p0Dkw", yt: "https://youtu.be/7Y943omW-Go?si=WkTc9B_fo1b77nH3" },
+        { id: 35, creator: "Ahmad Garsi", title: "ip man 4", desc: "كورتيا فلمي ip man 4 خوشترين فلم", img: "https://i.ytimg.com/vi/xI0dMoml4qg/maxresdefault.jpg", yt: "https://youtu.be/xI0dMoml4qg?si=YOcsZxwdLaKYfsTx" },
+        { id: 36, creator: "Ahmad Garsi", title: "the elixir 2025", desc: "كورتيا فلمي زومبي", img: "https://i.ytimg.com/vi/jgVyBX_JvKU/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLAfq3-dOse8QC6YPAVGBhcjk3ID1g", yt: "https://youtu.be/jgVyBX_JvKU?si=ffDmEL4FUMF9zIMo" },
+    ];
+
+    let currentFilter = "All";
+    let savedIDs = JSON.parse(localStorage.getItem('savedMovies')) || [];
+
+    function render() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const list = document.getElementById('movieList');
+        list.innerHTML = "";
+        const filtered = MOVIES.filter(m => {
+            const matchesSearch = m.title.toLowerCase().includes(query);
+            const matchesFilter = currentFilter === "All" || m.creator === currentFilter;
+            return matchesSearch && matchesFilter;
+        });
+        filtered.forEach(m => {
+            const isSaved = savedIDs.includes(m.id);
+            list.innerHTML += `
+                <div class="post-card">
+                    <img src="${m.img}">
+                    <div class="post-info">
+                        <span class="creator-tag"><i class="fas fa-user-circle"></i> ${m.creator.toUpperCase()}</span>
+                        <h2 class="post-title">${m.title}</h2>
+                        <p class="post-desc">${m.desc}</p>
+                        <div class="actions">
+                            <a href="${m.yt}" target="_blank" class="btn-watch">تەماشە بکە</a>
+                            <i class="fas fa-heart btn-save ${isSaved ? 'saved' : ''}" onclick="toggleSave(${m.id})"></i>
+                        </div>
+                    </div>
+                </div>`;
+        });
+        document.getElementById('saveCount').innerText = savedIDs.length;
+    }
+
+    function filterBy(creator, btn) {
+        currentFilter = creator;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        render();
+    }
+
+    function toggleSave(id) {
+        savedIDs = savedIDs.includes(id) ? savedIDs.filter(i => i !== id) : [...savedIDs, id];
+        localStorage.setItem('savedMovies', JSON.stringify(savedIDs));
+        render();
+        updateSavedList();
+    }
+
+    function updateSavedList() {
+        const list = document.getElementById('savedList');
+        list.innerHTML = "";
+        MOVIES.filter(m => savedIDs.includes(m.id)).forEach(m => {
+            list.innerHTML += `
+                <div class="saved-item">
+                    <img src="${m.img}">
+                    <div style="flex:1">
+                        <h4>${m.title}</h4>
+                        <small style="color:var(--accent);">${m.creator}</small>
+                    </div>
+                    <i class="fas fa-trash" style="color:var(--save); cursor:pointer;" onclick="toggleSave(${m.id})"></i>
+                </div>`;
+        });
+    }
+
+    function toggleSaved() {
+        const sb = document.getElementById('savedSidebar');
+        const ov = document.getElementById('overlay');
+        sb.classList.toggle('active');
+        ov.style.display = sb.classList.contains('active') ? 'block' : 'none';
+        updateSavedList();
+    }
+
+    document.getElementById('searchInput').addEventListener('input', render);
+    render();
+</script>
+
+</body>
+</html>
